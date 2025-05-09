@@ -2,14 +2,17 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'tuusuario/tuimagen'  // tu imagen DockerHub
-        DOCKERHUB_CREDENTIALS_ID = 'dockerhub-creds' // Jenkins ID de las credenciales
+        IMAGE_NAME = 'tuusuario/tuimagen'
+        DOCKERHUB_CREDENTIALS_ID = 'dockerhub-creds'
+        GITHUB_CREDENTIALS_ID = 'jenkins'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/tuusuario/turepo.git'
+                git branch: 'main', 
+                    url: 'https://github.com/tizzifona/jenkins-test2',
+                    credentialsId: "${GITHUB_CREDENTIALS_ID}"
             }
         }
 
