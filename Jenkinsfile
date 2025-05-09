@@ -2,41 +2,27 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'tizzifona/jenkins-test2'
-        DOCKERHUB_CREDENTIALS_ID = 'jenkins'
+        IMAGE_NAME = 'jenkins-test2-app'
+        CONTAINER_NAME = 'jenkins-test2-container'
+        HOST_PORT = '8081'
+        CONTAINER_PORT = '80'
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/tizzifona/jenkins-test2.git'
-            }
-        }
-
-        stage('Docker Build') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${IMAGE_NAME}:latest ."
+                    sh "docker build --no-cache -t ${IMAGE_NAME} -f Dockerfile ."
                 }
             }
         }
 
-        stage('Tag Docker Image') {
+        stage('Run Docker Container') {
             steps {
                 script {
-                    sh "docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${BUILD_NUMBER}"
-                }
-            }
-        }
+                    sh "docker rm -f ${CONTAINER_NAME} || true"
 
-        stage('DockerHub Login and Push') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push ${IMAGE_NAME}:latest
-                        docker push ${IMAGE_NAME}:${BUILD_NUMBER}
-                    '''
+                    sh "docker run -d -p ${HOST_PORT}:${CONTAINER_PORT} --name ${CONTAINER_NAME} ${IMAGE_NAME}"
                 }
             }
         }
