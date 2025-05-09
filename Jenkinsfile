@@ -2,24 +2,21 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'tuusuario/tuimagen'
-        DOCKERHUB_CREDENTIALS_ID = 'dockerhub-creds'
-        GITHUB_CREDENTIALS_ID = 'jenkins'
+        IMAGE_NAME = 'tizzifona/jenkins-test2'
+        DOCKERHUB_CREDENTIALS_ID = 'jenkins'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', 
-                    url: 'https://github.com/tizzifona/jenkins-test2',
-                    credentialsId: "${GITHUB_CREDENTIALS_ID}"
+                git branch: 'main', url: 'https://github.com/tizzifona/jenkins-test2.git'
             }
         }
 
         stage('Docker Build') {
             steps {
                 script {
-                    docker.build("${IMAGE_NAME}:latest")
+                    sh "docker build -t ${IMAGE_NAME}:latest ."
                 }
             }
         }
@@ -35,11 +32,11 @@ pipeline {
         stage('DockerHub Login and Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
+                    sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push ${IMAGE_NAME}:latest
                         docker push ${IMAGE_NAME}:${BUILD_NUMBER}
-                    """
+                    '''
                 }
             }
         }
