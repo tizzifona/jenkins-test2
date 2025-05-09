@@ -1,29 +1,20 @@
 pipeline {
     agent any
 
-    environment {
-        IMAGE_NAME = 'jenkins-test2-app'
-        CONTAINER_NAME = 'jenkins-test2-container'
-        HOST_PORT = '8081'
-        CONTAINER_PORT = '80'
-    }
-
     stages {
-        stage('Build Docker Image') {
+        stage('Build') {
             steps {
-                script {
-                    sh "docker build --no-cache -t ${IMAGE_NAME} -f Dockerfile ."
-                }
+                sh 'chmod 666 /var/run/docker.sock || true'
+
+                sh 'docker build --no-cache -t jenkins-test2 .'
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Run Container') {
             steps {
-                script {
-                    sh "docker rm -f ${CONTAINER_NAME} || true"
+                sh 'docker rm -f jenkins-test2 || true'
 
-                    sh "docker run -d -p ${HOST_PORT}:${CONTAINER_PORT} --name ${CONTAINER_NAME} ${IMAGE_NAME}"
-                }
+                sh 'docker run -d -p 8081:80 --name jenkins-test2 jenkins-test2'
             }
         }
     }
